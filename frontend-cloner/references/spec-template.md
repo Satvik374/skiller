@@ -85,6 +85,22 @@ Button
   used on    hero, nav, CTA band
 ```
 
+## 4b. Interaction states
+
+One row per control, or per control group when several controls only re-trigger
+the same state. Every `clicked` control from `reference/interactions/` appears
+here; every `skipped` control appears in §8 under "Unobserved controls".
+
+| # | page | control (path / label) | trigger | observed result | screenshot | measured values |
+|---|------|------------------------|---------|-----------------|------------|-----------------|
+| 1 | / | `body > header button#menu` — "Menu" | click | drawer slides in from the right | `reference/interactions/index/shots/003-menu-after.png` | drawer 420px, bg `#__`, shadow `0 20px 60px rgba(...)`, 240ms ease-out |
+| 2 | / | `#faq button:nth-of-type(2)` — "How it works" | click | accordion row expands, icon rotates 180° | `.../007-how-it-works-after.png` | expanded h 164px, gap 12px, 180ms |
+| 3 | /pricing | `[role=tab]` — "Annual" | click | prices swap to annual, badge appears | `.../011-annual-after.png` | tab underline 2px, badge 20px pill |
+| … | | | | | | |
+
+Coverage: `__` clicked + `__` skipped = `__` discovered. Source:
+`reference/interactions/index.json`.
+
 ## 5. Assets
 
 | file | stands in for | role | box | method | visible difference |
@@ -122,6 +138,17 @@ not do; if they appear, the clone is wrong.
 | 2 | hero photo replaced | cannot reuse | same crop, grade and scrim |
 | 3 | focus rings added | a11y | visible only on keyboard |
 
+### Unobserved controls
+
+Controls the interaction run skipped. Their behaviour is unknown, not inferred.
+Copy the reason from `manifest.json`.
+
+| # | page | control | reason | what would settle it |
+|---|------|---------|--------|----------------------|
+| 1 | / | `button#delete-account` | destructive-action | ask the user; do not click |
+| 2 | / | `form#newsletter button[type=submit]` | form-submit | test with a disposable address, or ask |
+| … | | | | |
+
 ## 9. Acceptance checklist
 
 - [ ] page background hex equals the measured value exactly
@@ -132,6 +159,12 @@ not do; if they appear, the clone is wrong.
 - [ ] line widths of the three longest headings within 2% of the reference
 - [ ] radii, borders and shadows match per component
 - [ ] hover, focus, active, disabled, open states behave the same
+- [ ] every `clicked` control in `interactions/index.json` appears in §4b with
+      its screenshot and measured values
+- [ ] every `skipped` control appears in §8 "Unobserved controls" with a reason
+- [ ] menus, modals, drawers, tabs, toggles and accordions match the captured
+      after-states, not just the resting page
+- [ ] `index.json.complete` is true, or the shortfall is explained in `REPORT.md`
 - [ ] no horizontal scroll where the reference has none
 - [ ] all assets authored, `assets/NOTES.md` complete, zero target URLs in the build
 - [ ] screenshot diff ≥ 90 per viewport, or the shortfall explained

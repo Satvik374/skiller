@@ -258,7 +258,10 @@ def main(argv=None):
         json.dump(manifest, fh, indent=2)
 
     print("\nreference folder: %s" % reference)
-    print("next: read references/analysis.md, then write %s/DESIGN.md"
+    print("next: exercise every control on every page in scope:")
+    print("  python3 explore_interactions.py %s --out %s"
+          % (args.url, args.out))
+    print("then: read references/analysis.md, then write %s/DESIGN.md"
           % args.out)
     print("note: captured pages are other people's work. Keep reference/ out of")
     print("      version control and out of the delivered build.")

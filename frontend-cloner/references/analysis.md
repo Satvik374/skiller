@@ -20,6 +20,8 @@ padding was guessed.
 7. `tokens` — declared custom properties, if any. Compare with `colors`.
 8. `elements` — component anatomy, box by box.
 9. `gradients`, `assets`, `motion`, `breakpoints`, `fonts`, `notes`.
+10. `interactions/index.json`, then each `<page>/manifest.json` — the click log.
+    It is the only record of what a control does; the resting screenshot is not.
 
 `count` is a popularity contest, not truth: a colour used 400 times is probably
 the page background, a type tuple used twice may be the display heading that
@@ -144,6 +146,48 @@ Then **states**. `states.json` has hover deltas; add focus, active, disabled,
 selected, open, error and empty by using the page yourself. Each state lists the
 properties that change and the transition that carries it.
 
+### 4.1 Interaction states (from `interactions/`)
+
+`states.json` covers hover only. The click log is the source of truth for what
+every control does. Work through it before writing any component block:
+
+1. **Check coverage first.** `index.json.complete` must be `true`. Every
+   `clicked` entry must have an `after` screenshot and a `change` class. If the
+   run was truncated or has failures, put the uncovered controls in `DESIGN.md`
+   under "Unobserved controls" with the reason. Do not build a guess and mark it
+   `measured`.
+2. **Group by component, not by control.** Three primary buttons, five
+   accordion rows and two tab bars are three components, not ten. One component
+   block per part, with every state observed on it.
+3. **Read `change` as the state name.** The classifier is the shortest route
+   from screenshot to spec:
+
+   | `change` | What it proves | What to record |
+   | --- | --- | --- |
+   | `overlay` | a modal, dialog, drawer or popover opened | overlay box, backdrop `rgba`, radius, shadow, anchor/side, entrance animation |
+   | `menu` | a dropdown or popover menu opened | anchor offset, menu width, item height, hover/focus item style |
+   | `expanded` | an accordion, tree or disclosure opened | collapsed vs expanded height, icon rotation, duration |
+   | `toggled` | a switch, checkbox or radio changed | on/off colours, knob geometry, label treatment |
+   | `navigation` | the control goes to another page or hash | the destination is its own page in the run; link it, do not restyle it |
+   | `content-change` | a tab, filter, or load-more swapped content | layout and type of the new content, not the old |
+   | `no-visible-change` | hover-only styling, or behaviour not observable from the DOM | mark the behaviour unobserved; do not invent a state |
+
+4. **Use `newVisible` for overlay anatomy.** Each entry carries the elements
+   that became visible after the click, with computed styles and page boxes.
+   That is the modal/drawer/menu measured from the rendered page, not eyeballed
+   from the screenshot.
+5. **Use `styleDelta` for pressed/expanded values.** It is the computed-style
+   difference on the control itself, so you get the real `backgroundColor`,
+   `transform`, `boxShadow` and radius per state.
+6. **Treat `skipped` as a documented gap.** Destructive, off-site, form-submit,
+   password and file controls were not exercised. Record them with their reason;
+   do not describe their result as measured.
+
+If the same overlay appears from several controls, capture it once in the
+component block and note every trigger. If a control opened an overlay that its
+`after` screenshot does not show (it closed before the capture), re-run that
+page with a longer `--settle` rather than guessing.
+
 ## 5. Stacking, stickiness, overlays
 
 - `position: fixed` items are usually a header, a floating CTA or a cookie bar.
@@ -209,6 +253,13 @@ For every value, mark provenance:
 - `inferred` — your reading (role names, base unit, what a breakpoint does).
 - `deviated` — you chose differently from the original (a11y fix, missing
   asset, licensed font).
+- `unobserved` — a control the interaction run did not click, with the reason.
+  Behaviour that was never exercised is not `inferred`; it is unknown.
 
 That marking is what lets the user audit the clone later, and it is what keeps
 "exactly the same" honest.
+
+Close the analysis by reconciling the interaction log with the spec: the count
+of controls in `DESIGN.md` §4b plus the unobserved list must equal
+`index.json.totals.discovered`. A control missing from both was dropped. Say so
+in `REPORT.md` if it cannot be resolved.

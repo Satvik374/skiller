@@ -1,6 +1,8 @@
 node_modules/
 dist/
 build/
+__pycache__/
+*.pyc
 
 # local secrets — the Sketchfab token lives here, never in git
 .env
