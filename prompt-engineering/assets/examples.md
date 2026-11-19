@@ -1,6 +1,6 @@
 # Worked Examples
 
-Five before/after rewrites. Each shows the failure, the rewritten prompt, and the design choices.
+Six before/after rewrites. Each shows the failure, the rewritten prompt, and the design choices.
 
 ## 1. Coding agent — bug fix
 
@@ -188,3 +188,72 @@ Output: the full index.html in one fenced block, then a short list of what you w
 ```
 
 **What changed:** audience and conversion goal, supplied copy, a section list, technical constraints that can be checked, three breakpoints, a done definition, and an output contract.
+
+## 6. Game build — vertical slice
+
+**Before**
+
+```text
+make me a fun 3D game with nice graphics
+```
+
+**Why it fails:** "fun" and "nice graphics" are unmeasurable; there is no
+platform, scope, stack, asset policy, or evidence requirement. The agent will
+build a grey-box demo, screenshot it, and call it done.
+
+**After**
+
+```text
+Build a 10-minute third-person vertical slice in three.js + Rapier + Vite for a
+mid-range laptop (integrated GPU, 1080p, 60 Hz). The player crosses a flooded
+district to restart a lighthouse; one traversal kit (sprint/jump/vault) and one
+interaction verb.
+
+Context:
+- New repo. Grounded realism, not low-poly.
+- Map: one 300×300 m district. Session length: 10 minutes.
+- Feel reference: <game> for camera distance and traversal speed only — do not
+  copy assets, characters, names, or logos.
+- Assets: use the ladder (Sketchfab token → Mixamo → Poly Haven → ambientCG →
+  Khronos → paid → author). No untextured primitives in a shipped frame. Keep
+  SKETCHFAB_TOKEN in .env, server-side only.
+
+Done when:
+- Spawn → bridge → lighthouse completes in one 60-second scripted run with zero
+  console errors and zero stuck frames.
+- p95 frame time ≤ 14 ms at the three landmarks; draw calls ≤ 400; on-screen
+  triangles ≤ 1.5 M.
+- Camera stays outside geometry for a 10-second 360° sweep in the test corner.
+- Walk/run/jump/crouch work at 30, 60 and 144 Hz with travel distance within 5%.
+- No T-pose on load; foot slip ≤ 3 cm/frame at walk and run.
+- Landmark screenshots at golden hour show PBR materials, HDRI lighting and
+  shadows; no grey-box geometry is visible.
+Evidence: shots/selftest.txt, shots/perf.json, shots/landmarks/*.png, 60 s clip.
+
+Method:
+- Use the game-builder phase gates: contract → pipeline spike → movement slice
+  → world → characters → systems → UI → verify.
+- Finish and verify one phase before starting the next. If a gate fails twice,
+  stop and report the blocker; do not add content to compensate.
+- Tune movement one value at a time, max 3 iterations, with before/after numbers.
+
+Boundaries:
+- Out of scope: multiplayer, mobile, saves, monetisation, procedural world,
+  localisation. Do not add them.
+- Never ship primitive geometry, disable the player collider to fix a stuck
+  spot, or lower resolution silently to hide a perf problem.
+- Ask before publishing, spending money, or deleting files.
+
+Output:
+- Runnable build (`npm run dev`), plus PLAN.md, PERF.md, CREDITS.md,
+  assets/registry.json, and REPORT.md with a PASS/FAIL/NOT TESTED table.
+- Screenshots: spawn, hero landmark, material close-up, character mid-stride,
+  settings screen, HUD in context.
+- Final message: what works, what is approximate, what was substituted and why,
+  what could not be tested, and measured p95 — no adjectives.
+```
+
+**What changed:** a playable outcome, platform and stack, a bounded map and
+session, an asset/licence policy, an IP boundary, four evidence families with
+numbers, phase gates with a stop condition, and a report contract. Nothing says
+"fun"; the prompt is far more likely to produce a game that is.

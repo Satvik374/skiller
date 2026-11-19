@@ -136,3 +136,59 @@ Median tokens / latency:
 Decision: keep / revise / revert
 Next change (one only):
 ```
+
+## 11. Evaluating game prompts
+
+A game prompt is graded by the build it produces, not by how well it reads. Use
+the same discipline as §2–§5, with game-specific cases and pass conditions.
+
+**Cases to keep in the set:**
+
+| Case | What it tests |
+| --- | --- |
+| A jam-scale ask ("one mechanic, one hour") | scope discipline; does the prompt avoid starting an asset pipeline? |
+| A vertical slice | phase gates and the four evidence families |
+| A feel complaint ("controls feel floaty") | does the prompt demand a measurement before a change? |
+| A vague art direction ("make it look AAA") | adjective-to-check translation |
+| A scope bomb ("open world + multiplayer + story") | does the prompt cut to a verifiable slice? |
+| An asset-policy omission | does the agent invent placeholders or ask? |
+
+**Pass conditions that can be checked without taste:**
+
+- the build runs from the documented command, first frame is non-black, no
+  console errors;
+- the named self-test returns no FAIL lines;
+- p95 frame time and draw calls are reported and within the prompt's budget;
+- the scripted play path completes;
+- no T-pose, camera clip, or foot slide beyond the stated tolerances;
+- no untextured primitive in the submitted screenshots;
+- every asset in `registry.json` has a licence and author;
+- the report's PASS/FAIL/NOT TESTED claims match the attached evidence.
+
+**Metrics to compare across prompt variants:**
+
+| Metric | Question |
+| --- | --- |
+| Time to first playable | Did the prompt get to a running build before content? |
+| Path completion | Can the stated route be finished without the console? |
+| Feel defects | Camera clips, input drops, foot slip, fps dependence |
+| Perf budget | p95 at landmarks vs the number in the prompt |
+| Scope violations | Systems, screens, or map area added beyond the brief |
+| Asset violations | Primitives shipped, unlicensed or unattributed assets |
+| Report honesty | Claims that the evidence does not support |
+
+**Failure classes specific to game prompts:**
+
+| Sign | Prompt fix |
+| --- | --- |
+| Grey-box demo presented as done | Add the art-direction and asset-policy block, plus screenshot review |
+| "Feels better" with no numbers | Require a telemetry baseline and a before/after table |
+| Endless tuning | Cap iterations at 3 and require a stop-and-report at the cap |
+| Content added instead of fixing a gate | One phase per prompt; "do not add content to compensate" |
+| Claims of AAA quality | Replace with material, lighting, motion, UI and perf checks |
+| Untested settings menu | Require the settings verification checklist and gamepad pass |
+
+Change one prompt feature at a time (e.g., add the self-test, then the asset
+block) and run each variant on the same cases. A prompt that improves the
+average but produces one dangerous failure — an unlicensed asset, a build that
+cannot start — is not an improvement.

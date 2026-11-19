@@ -1,8 +1,8 @@
 ---
 name: prompt-engineering
-description: Write, diagnose, and improve prompts for AI agents and LLMs. Use when the user wants a prompt created for coding, research, browser, writing, or automation work; when a prompt produces vague, inconsistent, or overreaching results; or when designing agent tool use, planning, verification, and acceptance criteria. Draws on Anthropic, OpenAI, Google, and Microsoft guidance plus patterns from production agent prompts.
+description: Write, diagnose, and improve prompts for AI agents and LLMs. Use when the user wants a prompt created for coding, research, browser, writing, automation, or game-building work; when a prompt produces vague, inconsistent, or overreaching results; or when designing agent tool use, planning, verification, and acceptance criteria. Draws on Anthropic, OpenAI, Google, and Microsoft guidance plus patterns from production agent prompts.
 metadata:
-  version: "1"
+  version: "2"
   updated: "2026-11-19"
 ---
 
@@ -19,6 +19,7 @@ This skill produces **task prompts** — what a person pastes into an agent to g
 Use it to:
 
 - turn a rough request into a prompt for a coding, research, browser, or general agent
+- write or repair prompts for game prototypes, vertical slices, mechanics, levels, art passes, or game UI — where "fun" and "AAA" must become measurable
 - repair a prompt that is vague, overlong, contradictory, or unreliable
 - add planning, tool-use, verification, or stop conditions to an agent brief
 - define acceptance criteria, output contracts, and autonomy boundaries
@@ -33,6 +34,8 @@ Ask only the questions whose answers change the prompt. If the user already supp
 | Dimension | Question | Why it changes the prompt |
 |---|---|---|
 | Task type | One answer, a tool-using agent, or long-horizon work? | Determines planning, state, and verification |
+| Domain | Is this a game or playable build? | Adds player-facing acceptance, performance budgets, asset/licence policy, and phase gates (see [Game prompts](references/game-prompts.md)) |
+| Evidence | Can the result be played, run, or diffed? | Prefer a play trace and self-test over a written claim |
 | Stakes | Reversible, or destructive / external / shared? | Determines autonomy and confirmation rules |
 | Inputs | Files, links, screenshots, data, prior attempts? | Determines the context block and retrieval strategy |
 | Done | How will success be checked? | Determines acceptance criteria and evidence |
@@ -129,6 +132,30 @@ When the user supplies a prompt to fix:
 5. **Show the change.** Return a before/after diff or a short "what changed and why" list, plus the full revised prompt.
 6. **Add a test.** Give one input that should now behave differently and say what correct looks like.
 
+## Game prompts
+
+Game work needs one extra translation before the seven slots: adjectives into
+checks. "Fun", "immersive", "smooth" and "AAA graphics" are not acceptance
+criteria, and a prompt that uses them licenses the agent to stop at a static
+screenshot.
+
+- Name the **player-facing outcome** and the **platform/hardware**. They set
+  the input scheme and every performance budget.
+- Convert each quality word into evidence: a play trace, an input/telemetry
+  test, landmark screenshots, or p95 frame time.
+- State the **asset and licence policy** whenever visible content is produced;
+  without it the agent invents primitives or ships unlicensed assets.
+- Split anything larger than one mechanic into **phases with gates**, and scope
+  the prompt to what one turn can verify. A full game is a plan, not a prompt.
+- Require a **runnable build plus measured numbers** and a PASS/FAIL/NOT TESTED
+  report. "Polished" is not a finding.
+
+Full guidance, an adjective-to-check table, asset blocks and copyable briefs for
+prototypes, vertical slices, mechanics, levels, art passes, settings screens and
+performance work: [Game prompts](references/game-prompts.md). When the
+`game-builder` skill is available, point the prompt at its phase plan and
+references instead of restating their contents.
+
 ## Model adjustments
 
 These are starting points, not laws. Verify against current vendor docs before relying on model-specific behavior.
@@ -155,6 +182,10 @@ These are starting points, not laws. Verify against current vendor docs before r
 | Fabrication | No uncertainty path | Allow "not found"; require citations or evidence |
 | Too verbose | "Concise" is unquantified | Give a line/word budget and an example |
 | Too cautious | No permission to act under uncertainty | State which assumptions may be made and noted |
+| Game feels lifeless | Acceptance is adjectives; no loop or feedback spec | Define the 60-second loop, feedback timing, and one meaningful choice |
+| Looks like a tech demo | Art direction and asset policy missing; primitives accepted | Add material/lighting gates and an asset source policy |
+| Controls feel wrong | No numeric feel targets or telemetry | Specify speeds, camera rig, input latency, coyote/buffer, fps-independence tests |
+| Game scope explodes | No phase gates or out-of-scope list | One phase per prompt; add a stop condition and exclusions |
 
 ## Anti-patterns
 
@@ -168,6 +199,10 @@ These are starting points, not laws. Verify against current vendor docs before r
 - **Unverifiable acceptance** — "make it production-ready".
 - **Mixed delimiters** — XML and Markdown used for the same hierarchy.
 - **Stale facts** — model names, dates, paths, and versions baked into reusable prompts.
+- **"Fun" as a requirement** — unmeasurable; replace it with the loop, feedback timing, and evidence.
+- **"AAA" as an adjective** — name the materials, lighting, motion, and UI craft you mean.
+- **A full game in one prompt** — multiplayer + open world + story cannot share one gate.
+- **No asset policy** — guarantees placeholder geometry or licence debt.
 
 ## References
 
@@ -175,6 +210,7 @@ These are starting points, not laws. Verify against current vendor docs before r
 - [Agent prompt design](references/agent-prompts.md) — tool policy, planning, autonomy, verification, and long-horizon work.
 - [Pattern library](references/patterns.md) — copyable patterns for common jobs.
 - [Evaluation](references/evaluation.md) — test prompts, diagnose failures, and prevent regressions.
+- [Game prompts](references/game-prompts.md) — playable-build briefs, adjective-to-check translation, assets and licences, phase gates, and playtest prompts.
 - [System-prompt insights](references/system-prompt-insights.md) — what production agent prompts do, what to borrow, and what to leave out.
 - [Prompt template](assets/prompt-template.md)
 - [Worked examples](assets/examples.md)

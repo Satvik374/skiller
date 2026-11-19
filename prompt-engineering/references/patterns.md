@@ -19,6 +19,9 @@ Copyable skeletons for common jobs. Each pattern lists when to use it, the promp
 | An agent with several tools | Tool policy block |
 | Work spanning context windows | Long-horizon state block |
 | One input that must go down one path | Classification / routing |
+| A playable game, prototype, or vertical slice | Game brief with phase gates |
+| A mechanic that must feel right | Feel spec with telemetry |
+| A build that must be judged, not praised | Playtest review |
 
 ## 1. Spec interview
 
@@ -249,3 +252,62 @@ Return only the label.
 ```
 
 Add one example per boundary if labels are commonly confused. For high-stakes routing, ask for a confidence and route low-confidence cases to a human.
+
+## 16. Game brief with phase gates
+
+**Use when:** the user wants a playable game, prototype, or vertical slice.
+
+```text
+Build <player-facing outcome> for <platform/hardware>, <session length>.
+Genre/camera: <...>. Scope: <map size, systems, screens>.
+Art direction: <realism / stylised realism / explicit stylised look>.
+Assets: <ladder + licence policy; no primitives in a shipped frame>.
+
+Done when:
+- <60 s scripted path completes, no console errors>
+- <p95 frame time / draw calls / tris at named landmarks>
+- <camera, foot-slide, fps-independence, no T-pose checks>
+- <landmark screenshots show materials, lighting, shadows>
+Evidence: <self-test output, perf JSON, screenshots, clip>.
+
+Method: use the game-builder phase gates. Finish and verify one phase before
+the next. If a gate fails twice, stop and report the blocker.
+
+Boundaries: out of scope <...>. Ask before <publish/spend/delete>.
+Return: runnable build, PLAN.md, PERF.md, CREDITS.md, REPORT.md with a
+PASS/FAIL/NOT TESTED table and measured numbers.
+```
+
+**Prevents:** "fun" as a stop condition, grey-box shipped as final, and a
+full game attempted in one turn.
+
+## 17. Feel spec with telemetry
+
+**Use when:** a mechanic works but feels wrong, and "make it smoother" would be
+a guess.
+
+```text
+Make <mechanic> feel like <reference trait>. Current: <symptom>.
+Targets: <speed / acceleration / latency / camera distance / cooldown>.
+First expose metrics behind ?debug=1: <what to log>.
+Change one tuning value, re-measure, max 3 iterations.
+Report a before/after table with the measured numbers and the exact clip.
+Do not change unrelated systems, content, or visuals.
+```
+
+**Prevents:** tuning by vibe, shotgun rewrites, and unverified "feels better".
+
+## 18. Playtest review
+
+**Use when:** you need a judgement of a build before spending more on it.
+
+```text
+Play from a fresh save for <duration>. Do not fix anything.
+Record: time to first control, time to first objective, softlocks/deaths,
+frames where input was ignored, camera clips, and three moments of confusion.
+For each finding: timestamp, screenshot, severity, and the smallest fix.
+If you find nothing material, say so; do not invent findings.
+```
+
+**Prevents:** reviews that mutate the build, and nitpick lists with no evidence.
+
