@@ -1,0 +1,72 @@
+{
+  "building_modern": {
+    "attribution_required": true,
+    "author": "99.Miles",
+    "author_url": "https://sketchfab.com/99.Miles",
+    "clips": 0,
+    "downloaded_at": "2026-11-19T12:51:04+00:00",
+    "faces": 7042,
+    "file": "public/assets/building_modern/scene.gltf",
+    "license": "CC Attribution",
+    "source": "sketchfab",
+    "title": "Modern NYC Dwellings",
+    "uid": "8ef9555171c44ba1872a17558f589630",
+    "url": "https://sketchfab.com/3d-models/modern-nyc-dwellings-8ef9555171c44ba1872a17558f589630"
+  },
+  "building_shop": {
+    "attribution_required": true,
+    "author": "yadrogames",
+    "author_url": "https://sketchfab.com/yadrogames",
+    "clips": 0,
+    "downloaded_at": "2026-11-19T12:53:51+00:00",
+    "faces": 12792,
+    "file": "public/assets/building_shop/scene.gltf",
+    "license": "CC Attribution",
+    "source": "sketchfab",
+    "title": "Abandoned | Building | Shop | Old | House",
+    "uid": "0ed14367314946b298d9a58db66da040",
+    "url": "https://sketchfab.com/3d-models/abandoned-building-shop-old-house-0ed14367314946b298d9a58db66da040"
+  },
+  "car_bmw_m3_e30": {
+    "attribution_required": true,
+    "author": "TinoD2",
+    "author_url": "https://sketchfab.com/TinoD2",
+    "clips": 0,
+    "downloaded_at": "2026-11-19T12:45:04+00:00",
+    "faces": 117261,
+    "file": "public/assets/car_bmw_m3_e30/scene.gltf",
+    "license": "CC Attribution",
+    "source": "sketchfab",
+    "title": "[FREE] BMW M3 E30",
+    "uid": "ac3c7013434e403e8faff87948caf422",
+    "url": "https://sketchfab.com/3d-models/free-bmw-m3-e30-ac3c7013434e403e8faff87948caf422"
+  },
+  "car_skyline_r32": {
+    "attribution_required": true,
+    "author": "Lexyc16",
+    "author_url": "https://sketchfab.com/Lexyc16",
+    "clips": 0,
+    "downloaded_at": "2026-11-19T12:45:11+00:00",
+    "faces": 24612,
+    "file": "public/assets/car_skyline_r32/scene.gltf",
+    "license": "CC Attribution-NonCommercial",
+    "source": "sketchfab",
+    "title": "Nissan Skyline (R32) GT-R",
+    "uid": "8810e677eca543a6b840cf67dd064aa4",
+    "url": "https://sketchfab.com/3d-models/nissan-skyline-r32-gt-r-8810e677eca543a6b840cf67dd064aa4"
+  },
+  "tree_pine": {
+    "attribution_required": true,
+    "author": "Varleyhal",
+    "author_url": "https://sketchfab.com/Varleyhal",
+    "clips": 0,
+    "downloaded_at": "2026-11-19T12:50:57+00:00",
+    "faces": 4380,
+    "file": "public/assets/tree_pine/scene.gltf",
+    "license": "Free Standard",
+    "source": "sketchfab",
+    "title": "Tree 3d model Fir Spruce Pine",
+    "uid": "7daf178b3fa64e2fa7b2c2d19cf2a4bf",
+    "url": "https://sketchfab.com/3d-models/tree-3d-model-fir-spruce-pine-7daf178b3fa64e2fa7b2c2d19cf2a4bf"
+  }
+}

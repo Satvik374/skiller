@@ -1,0 +1,76 @@
+/* Design tokens. Every value here is either measured from the rendered page
+   (see DESIGN.md §1) or derived from the measured 4px spacing base. */
+:root {
+  /* surfaces */
+  --bg-base: #121212;
+  --bg-press: #000000;
+  --bg-elevated: #1f1f1f;
+  --bg-highlight: #1f1f1f;
+  --bg-tinted-base: rgba(255, 255, 255, 0.1);
+  --bg-tinted-highlight: rgba(255, 255, 255, 0.14);
+  --bg-tinted-press: rgba(255, 255, 255, 0.21);
+  --bg-scrim: rgba(0, 0, 0, 0.6);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+
+  /* text */
+  --text-base: #ffffff;
+  --text-subdued: #b3b3b3;
+  --text-essential-subdued: #7c7c7c;
+  --text-negative: #f3727f;
+
+  /* brand / semantic */
+  --accent: #1ed760;
+  --accent-hover: #3be477;
+  --accent-press: #1abc54;
+  --accent-text: #000000;
+
+  /* radii */
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 16px;
+  --r-pill: 9999px;
+
+  /* 4px spacing base */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* motion */
+  --d-1: 50ms;
+  --d-2: 100ms;
+  --d-3: 150ms;
+  --d-4: 200ms;
+  --d-5: 250ms;
+  --d-6: 300ms;
+  --ease: cubic-bezier(0.3, 0, 0, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.8, 0, 1, 1);
+
+  /* shell metrics (measured at 1440x900) */
+  --topbar-h: 64px;
+  --player-h: 72px;
+  --shell-pad: 8px;
+  --panel-gap: 8px;
+  --sidebar-w: 280px;
+  --panel-w: 280px;
+  --bottom-nav-h: 0px;
+
+  /* type */
+  --font-ui: "Figtree", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --font-title: "Figtree", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+
+  --t-hero: 96px;
+  --t-section: 24px;
+  --t-card: 16px;
+  --t-body: 16px;
+  --t-small: 14px;
+  --t-caption: 12px;
+  --t-micro: 11px;
+}

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+
+# local secrets — the Sketchfab token lives here, never in git
+.env
+.env.local
+*.pem
+
+# raw downloads before optimisation (see game-builder/references/assets.md)
+download/
+*.zip
+
+.DS_Store
+*.log

@@ -1,0 +1,160 @@
+{
+  "budget": "hero",
+  "limits": [
+    120000,
+    2048,
+    8,
+    120,
+    40.0
+  ],
+  "files": [
+    {
+      "path": "public/assets/fox.glb",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "bytes": 162852,
+      "meshes": 1,
+      "primitives": 1,
+      "triangles": 576,
+      "vertices": 1728,
+      "materials": 1,
+      "textures": 1,
+      "texture_max": 1024,
+      "texture_bytes": 26764,
+      "images": [
+        {
+          "name": "image/png",
+          "width": 1024,
+          "height": 1024,
+          "bytes": 26764
+        }
+      ],
+      "slots": [],
+      "animations": [
+        {
+          "name": "Survey",
+          "duration": 3.417,
+          "channels": 21,
+          "loop_rotation_delta_deg": 0.04,
+          "loop_position_delta": 0.0,
+          "worst_node": 13,
+          "loops": true
+        },
+        {
+          "name": "Walk",
+          "duration": 0.708,
+          "channels": 21,
+          "loop_rotation_delta_deg": 0.04,
+          "loop_position_delta": 0.0,
+          "worst_node": 4,
+          "loops": true
+        },
+        {
+          "name": "Run",
+          "duration": 1.158,
+          "channels": 21,
+          "loop_rotation_delta_deg": 0.04,
+          "loop_position_delta": 0.0,
+          "worst_node": 5,
+          "loops": true
+        }
+      ],
+      "skins": 1,
+      "bones": 24,
+      "morph_targets": 0,
+      "bbox": {
+        "min": [
+          -12.5927,
+          -0.1217,
+          -88.095
+        ],
+        "max": [
+          12.5927,
+          78.9072,
+          66.6249
+        ],
+        "size": [
+          25.1854,
+          79.0289,
+          154.7199
+        ]
+      },
+      "vertex_colors": false,
+      "extensions": [],
+      "loop_check": true
+    },
+    {
+      "path": "public/assets/helmet.glb",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "bytes": 3773916,
+      "meshes": 1,
+      "primitives": 1,
+      "triangles": 15452,
+      "vertices": 14556,
+      "materials": 1,
+      "textures": 5,
+      "texture_max": 2048,
+      "texture_bytes": 3213224,
+      "images": [
+        {
+          "name": "image/jpeg",
+          "width": 2048,
+          "height": 2048,
+          "bytes": 935629
+        },
+        {
+          "name": "image/jpeg",
+          "width": 2048,
+          "height": 2048,
+          "bytes": 1300661
+        },
+        {
+          "name": "image/jpeg",
+          "width": 2048,
+          "height": 2048,
+          "bytes": 97499
+        },
+        {
+          "name": "image/jpeg",
+          "width": 2048,
+          "height": 2048,
+          "bytes": 361678
+        },
+        {
+          "name": "image/jpeg",
+          "width": 2048,
+          "height": 2048,
+          "bytes": 517757
+        }
+      ],
+      "slots": [],
+      "animations": [],
+      "skins": 0,
+      "bones": 0,
+      "morph_targets": 0,
+      "bbox": {
+        "min": [
+          -0.9475,
+          -1.1872,
+          -0.901
+        ],
+        "max": [
+          0.9425,
+          0.8128,
+          0.901
+        ],
+        "size": [
+          1.89,
+          2.0,
+          1.802
+        ]
+      },
+      "vertex_colors": false,
+      "extensions": [],
+      "loop_check": true
+    }
+  ]
+}

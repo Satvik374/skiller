@@ -1,0 +1,5 @@
+reference/
+shots/
+diffs/
+node_modules/
+.DS_Store

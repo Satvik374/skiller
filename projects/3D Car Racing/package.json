@@ -1,0 +1,18 @@
+{
+  "name": "velocity-ridge",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Velocity Ridge — an open-world 3D car racing game running in the browser",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11"
+  }
+}

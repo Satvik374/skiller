@@ -1,0 +1,215 @@
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg-press);
+  color: var(--text-base);
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+h1, h2, h3, h4, p, figure { margin: 0; }
+
+h1, h2, h3 { font-family: var(--font-title); font-weight: 700; line-height: 1.2; }
+
+a { color: inherit; text-decoration: none; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+input { font: inherit; color: inherit; }
+
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+img, svg { display: block; }
+
+svg { width: 100%; height: 100%; fill: none; }
+
+:focus-visible {
+  outline: 2px solid var(--text-base);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+::selection { background: var(--accent); color: #000; }
+
+/* narrow, dark scrollbars like the reference */
+* { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) transparent; }
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: var(--r-pill);
+}
+*::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.5); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- generated cover art (authored: gradients + geometry only) ------------- */
+.art {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background:
+    conic-gradient(from 210deg at 72% 18%,
+      hsl(var(--h2) 72% 34% / 0.85),
+      transparent 38%),
+    radial-gradient(120% 110% at 20% 12%,
+      hsl(var(--h1) 82% 62% / 0.85) 0%,
+      hsl(var(--h1) 68% 42% / 0.55) 42%,
+      transparent 68%),
+    linear-gradient(150deg,
+      hsl(var(--h1) 64% 38%) 0%,
+      hsl(var(--h2) 58% 20%) 100%);
+}
+.art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(48% 48% at 64% 46%, transparent 58%, hsl(0 0% 100% / 0.09) 58% 62%, transparent 62%),
+    radial-gradient(30% 30% at 66% 44%, hsl(var(--h2) 90% 78% / 0.5) 0 18%, transparent 20%),
+    repeating-linear-gradient(115deg, hsl(0 0% 100% / 0.05) 0 1px, transparent 1px 14px);
+  mix-blend-mode: screen;
+  opacity: 0.9;
+  pointer-events: none;
+}
+.art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.32) 100%);
+  pointer-events: none;
+}
+.art--round { border-radius: 50%; }
+.art--liked {
+  background: linear-gradient(135deg, #4b2fa8 0%, #7d6bff 45%, #b9d6ff 100%);
+}
+.art--liked::before {
+  background:
+    radial-gradient(46% 46% at 50% 46%, #fff 0 34%, transparent 35%),
+    radial-gradient(100% 100% at 0% 100%, rgba(255, 255, 255, 0.35), transparent 60%);
+  opacity: 0.92;
+}
+.art__heart {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  z-index: 1;
+}
+.art__heart svg { width: 42%; height: 42%; }
+.art__glyph {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.9);
+}
+.art__glyph svg { width: 30%; height: 30%; }
+
+/* --- buttons -------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 32px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-pill);
+  font-size: var(--t-small);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform var(--d-1) var(--ease), background-color var(--d-3) var(--ease), color var(--d-3) var(--ease), opacity var(--d-3) var(--ease);
+}
+.btn svg { width: 16px; height: 16px; }
+.btn--light { background: #fff; color: #000; }
+.btn--light:hover { transform: scale(1.04); background: #f6f6f6; }
+.btn--outline {
+  background: transparent;
+  color: var(--text-base);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+.btn--outline:hover { border-color: #fff; transform: scale(1.04); }
+.btn--ghost { background: transparent; color: var(--text-subdued); }
+.btn--ghost:hover { color: var(--text-base); }
+.btn--accent { background: var(--accent); color: var(--accent-text); }
+.btn--accent:hover { background: var(--accent-hover); transform: scale(1.04); }
+.btn--lg { height: 48px; padding: 0 var(--s-6); font-size: var(--t-body); }
+.btn[disabled] { opacity: 0.35; pointer-events: none; }
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  color: var(--text-subdued);
+  transition: color var(--d-3) var(--ease), background-color var(--d-3) var(--ease), transform var(--d-2) var(--ease);
+}
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn:hover { color: var(--text-base); }
+.icon-btn--hoverable:hover { background: var(--bg-tinted-base); }
+.icon-btn[aria-pressed="true"] { color: var(--accent); }
+.icon-btn--round48 {
+  width: 48px;
+  height: 48px;
+  background: var(--bg-elevated);
+  color: var(--text-subdued);
+}
+.icon-btn--round48 svg { width: 24px; height: 24px; }
+.icon-btn--round48:hover { color: var(--text-base); transform: scale(1.04); }
+.icon-btn--round48.is-active { color: var(--text-base); }
+
+.play-fab {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 8px 8px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--d-3) var(--ease), transform var(--d-3) var(--ease), background-color var(--d-3) var(--ease);
+}
+.play-fab svg { width: 20px; height: 20px; }
+.play-fab:hover { background: var(--accent-hover); transform: scale(1.04); }
