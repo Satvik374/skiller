@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Options — AAA settings reference</title>
+<!--
+  Reference implementation of an AAA-style settings screen.
+  Port the structure and tokens into the project's framework; do not redesign
+  from scratch. Everything here is data-driven: add a row to SCHEMA, add its
+  default to DEFAULTS, and the layout, persistence and navigation follow.
+-->
+<style>
+  :root {
+    --bg-panel: rgba(10, 12, 15, 0.82);
+    --bg-rail: rgba(6, 8, 11, 0.72);
+    --bg-row-hover: rgba(255, 255, 255, 0.045);
+    --bg-row-focus: rgba(255, 255, 255, 0.075);
+    --line: rgba(255, 255, 255, 0.07);
+    --line-strong: rgba(255, 255, 255, 0.14);
+    --text: #f2f4f7;
+    --text-dim: #9aa3af;
+    --text-faint: #6b7280;
+    --accent: #e8b45a;
+    --accent-dim: rgba(232, 180, 90, 0.18);
+    --danger: #e06a5a;
+    --radius: 4px;
+    --dur: 140ms;
+    --ease: cubic-bezier(0.32, 0.72, 0, 1);
+    --font-ui: "Inter", "Barlow", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #05070a;
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ---- fake game frame behind the menu (a real game renders live here) ---- */
+  .underlay { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+  .sky { position: absolute; inset: 0; background:
+      radial-gradient(120% 80% at 70% 12%, #4a5b6e 0%, #232c36 38%, #0b0e13 78%); }
+  .sun { position: absolute; width: 46vw; height: 46vw; right: 4vw; top: 6vh;
+      background: radial-gradient(circle, rgba(255,196,125,.72), rgba(255,150,70,.12) 42%, transparent 68%);
+      filter: blur(6px); }
+  .ridge { position: absolute; left: -10%; right: -10%; bottom: 0; height: 62%;
+      background: linear-gradient(180deg, #10161d 0%, #0a0e13 100%);
+      clip-path: polygon(0 62%, 8% 54%, 15% 58%, 22% 44%, 30% 50%, 38% 36%, 46% 44%, 55% 30%, 63% 40%, 71% 26%, 80% 36%, 88% 30%, 100% 42%, 100% 100%, 0 100%); }
+  .ridge.b { bottom: -6%; height: 46%; filter: blur(2px); opacity: .85;
+      background: linear-gradient(180deg, #0a0f15, #05070a); }
+  .haze { position: absolute; inset: 0; background:
+      radial-gradient(70% 40% at 62% 58%, rgba(255,170,110,.20), transparent 70%); }
+  .scanline { position: absolute; inset: 0; opacity: .05;
+      background: repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 3px); }
+  .caption { position: absolute; left: 6vw; bottom: 14vh; z-index: 1;
+      font-size: 11px; letter-spacing: .34em; text-transform: uppercase; color: rgba(255,255,255,.42); }
+  body.menu-open .underlay { filter: brightness(.85) saturate(1.02) blur(2.5px); }
+
+  /* ---------------------------- menu shell ---------------------------- */
+  .shell {
+    position: relative; z-index: 2; flex: 1; display: flex; min-height: 0;
+    padding: 48px 64px 0;
+    background: linear-gradient(180deg, rgba(3,5,8,.30), rgba(3,5,8,.66));
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+  }
+
+  /* rail */
+  .rail {
+    width: 320px; flex: none; display: flex; flex-direction: column;
+    padding-right: 32px; background: var(--bg-rail);
+    border-right: 1px solid var(--line);
+  }
+  .rail-head { padding: 0 16px 28px 0; }
+  .eyebrow {
+    display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--text-faint); margin-bottom: 6px;
+  }
+  .rail-head h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: .14em; }
+  .tab {
+    display: flex; align-items: center; gap: 12px;
+    height: 52px; margin-bottom: 6px; padding: 0 16px;
+    border: 0; border-left: 3px solid transparent;
+    background: transparent; color: var(--text-dim);
+    font: inherit; font-size: 14.5px; letter-spacing: .04em; text-align: left;
+    cursor: pointer; border-radius: 0 var(--radius) var(--radius) 0;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .tab .glyph { width: 18px; text-align: center; font-size: 13px; opacity: .8; }
+  .tab:hover { background: var(--bg-row-hover); color: var(--text); }
+  .tab[aria-selected="true"] {
+    background: var(--accent-dim); color: var(--text);
+    border-left-color: var(--accent); font-weight: 600;
+  }
+  .tab[aria-selected="true"] .glyph { opacity: 1; color: var(--accent); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .rail-foot { margin-top: auto; padding: 20px 0 24px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border: 1px solid var(--line-strong);
+    border-radius: 2px; font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-dim);
+  }
+  .chip b { color: var(--accent); font-weight: 600; }
+
+  /* panel */
+  .panel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .panel-head { padding: 0 8px 18px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+  .panel-head h2 { margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: .05em; }
+  .panel-head p { margin: 0; font-size: 12.5px; color: var(--text-dim); max-width: 52ch; }
+  .preset { display: flex; align-items: center; gap: 10px; flex: none; }
+  .preset label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--text-faint); }
+
+  .rows {
+    flex: 1; overflow-y: auto; padding: 10px 8px 28px; scrollbar-width: thin;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 10px, #000 94%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 10px, #000 94%, transparent 100%);
+  }
+  .rows::-webkit-scrollbar { width: 8px; }
+  .rows::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 8px; }
+
+  .section {
+    display: flex; align-items: center; gap: 12px; margin: 26px 0 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--text-faint);
+  }
+  .section:first-child { margin-top: 4px; }
+  .section::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .row {
+    display: grid; grid-template-columns: 1fr 300px; align-items: center;
+    gap: 24px; min-height: 56px; padding: 8px 12px;
+    border-radius: var(--radius); border-bottom: 1px solid var(--line);
+    transition: background var(--dur) var(--ease);
+    outline: none;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row:hover { background: var(--bg-row-hover); }
+  .row.focused { background: var(--bg-row-focus); box-shadow: inset 2px 0 0 var(--accent); }
+  .row-label { min-width: 0; }
+  .row-label .name { display: block; font-size: 14.5px; font-weight: 500; }
+  .row-label .hint { display: block; margin-top: 3px; font-size: 12px; color: var(--text-dim); }
+  .row-control { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+  .restart {
+    font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); border: 1px solid var(--accent); border-radius: 2px;
+    padding: 1px 5px;
+  }
+
+  /* controls */
+  .segmented { display: flex; width: 100%; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; }
+  .segmented button {
+    flex: 1 1 0; min-width: 0; padding: 7px 8px; border: 0; background: transparent;
+    color: var(--text-dim); font: inherit; font-size: 12.5px; cursor: pointer;
+    border-right: 1px solid var(--line); transition: all var(--dur) var(--ease);
+    font-variant-numeric: tabular-nums;
+  }
+  .segmented button:last-child { border-right: 0; }
+  .segmented button:hover { background: var(--bg-row-hover); color: var(--text); }
+  .segmented button[aria-pressed="true"] { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .segmented button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .slider-wrap { display: flex; align-items: center; gap: 12px; width: 100%; justify-content: flex-end; }
+  input[type="range"] {
+    appearance: none; -webkit-appearance: none; width: 170px; height: 3px;
+    background: linear-gradient(90deg, var(--accent) var(--p, 50%), rgba(255,255,255,.16) var(--p, 50%));
+    border-radius: 3px; outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
+    background: #f6f7f9; border: 2px solid var(--accent); margin-top: -0.5px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.6);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 11px; height: 11px; border-radius: 50%; background: #f6f7f9;
+    border: 2px solid var(--accent);
+  }
+  input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
+  .value {
+    min-width: 62px; text-align: right; font-size: 13px;
+    font-variant-numeric: tabular-nums; color: var(--text);
+  }
+  .value .unit { color: var(--text-faint); font-size: 11px; margin-left: 2px; }
+
+  .toggle {
+    display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+    background: none; border: 0; color: inherit; font: inherit;
+  }
+  .toggle .track {
+    width: 38px; height: 20px; border-radius: 10px; background: rgba(255,255,255,.14);
+    border: 1px solid var(--line-strong); position: relative;
+    transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  .toggle .knob {
+    position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+    background: #cdd3db; transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
+  }
+  .toggle[aria-pressed="true"] .track { background: var(--accent-dim); border-color: var(--accent); }
+  .toggle[aria-pressed="true"] .knob { transform: translateX(18px); background: var(--accent); }
+  .toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .toggle .state { font-size: 12px; color: var(--text-dim); min-width: 26px; text-align: left; }
+
+  select {
+    appearance: none; -webkit-appearance: none; min-width: 170px;
+    padding: 8px 30px 8px 12px; border-radius: var(--radius);
+    background: rgba(255,255,255,.05) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%239aa3af'/></svg>") no-repeat right 11px center;
+    border: 1px solid var(--line-strong); color: var(--text);
+    font: inherit; font-size: 12.5px; cursor: pointer;
+    font-variant-numeric: tabular-nums;
+  }
+  select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .textbtn {
+    padding: 7px 14px; border: 1px solid var(--line-strong); border-radius: var(--radius);
+    background: transparent; color: var(--text); font: inherit; font-size: 12.5px;
+    letter-spacing: .06em; cursor: pointer; transition: all var(--dur) var(--ease);
+  }
+  .textbtn:hover { border-color: var(--accent); color: var(--accent); }
+  .textbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* footer */
+  .footer {
+    position: relative; z-index: 3; flex: none; height: 72px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 64px; border-top: 1px solid var(--line);
+    background: rgba(5, 7, 10, .88);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  }
+  .dirty-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+    opacity: 0; transition: opacity var(--dur) var(--ease);
+  }
+  body.dirty .dirty-dot { opacity: 1; }
+  .footer .spacer { flex: 1; }
+  .footer .note { font-size: 11.5px; color: var(--text-faint); }
+  .footer .note kbd {
+    font: inherit; font-size: 11px; padding: 1px 5px; border: 1px solid var(--line-strong);
+    border-radius: 2px; color: var(--text-dim); white-space: nowrap;
+  }
+  .btn {
+    min-width: 108px; height: 36px; padding: 0 18px; border-radius: var(--radius);
+    border: 1px solid var(--line-strong); background: transparent; color: var(--text);
+    font: inherit; font-size: 13px; letter-spacing: .05em; cursor: pointer;
+    transition: all var(--dur) var(--ease);
+  }
+  .btn:hover:not(:disabled) { border-color: var(--text-dim); background: var(--bg-row-hover); }
+  .btn.primary { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .btn.primary:hover:not(:disabled) { background: rgba(232,180,90,.28); }
+  .btn:disabled { opacity: .38; cursor: default; }
+  .btn.primary:disabled {
+    opacity: 1; border-color: var(--line-strong);
+    background: rgba(255, 255, 255, .03); color: var(--text-faint);
+  }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* revert modal */
+  .modal {
+    position: fixed; inset: 0; z-index: 20; display: none;
+    place-items: center; background: rgba(2,3,5,.72);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .modal.open { display: grid; }
+  .modal .card {
+    width: min(460px, 90vw); padding: 28px 30px;
+    background: rgba(14,17,22,.97); border: 1px solid var(--line-strong);
+    border-radius: 6px; box-shadow: 0 24px 80px rgba(0,0,0,.68);
+  }
+  .modal h3 { margin: 0 0 8px; font-size: 17px; letter-spacing: .04em; }
+  .modal p { margin: 0 0 22px; font-size: 13px; color: var(--text-dim); line-height: 1.55; }
+  .modal .count { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  @media (max-width: 1000px) {
+    .shell { padding: 24px 20px 0; }
+    .rail { width: 220px; padding-right: 16px; }
+    .row { grid-template-columns: 1fr; gap: 10px; }
+    .row-control { justify-content: flex-start; }
+    .footer { padding: 0 20px; }
+    body .footer .note { display: none; }
+  }
+</style>
+</head>
+<body class="menu-open">
+  <div class="underlay" aria-hidden="true">
+    <div class="sky"></div><div class="sun"></div><div class="haze"></div>
+    <div class="ridge"></div><div class="ridge b"></div><div class="scanline"></div>
+    <div class="caption">Chapter I — The Harbour</div>
+  </div>
+
+  <div class="shell">
+    <aside class="rail">
+      <div class="rail-head">
+        <span class="eyebrow">System</span>
+        <h1>OPTIONS</h1>
+      </div>
+      <nav id="tabs" role="tablist" aria-label="Settings categories"></nav>
+      <div class="rail-foot">
+        <span class="chip" id="detected">Detected <b>High</b></span>
+      </div>
+    </aside>
+
+    <section class="panel">
+      <header class="panel-head">
+        <div>
+          <h2 id="tab-title">Display</h2>
+          <p id="tab-desc"></p>
+        </div>
+        <div class="preset" id="preset-wrap">
+          <label for="preset">Preset</label>
+          <select id="preset" aria-label="Quality preset">
+            <option value="custom">Custom</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="ultra">Ultra</option>
+          </select>
+        </div>
+      </header>
+      <div class="rows" id="rows" role="tabpanel"></div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <button class="textbtn" id="defaults">Reset to defaults</button>
+    <span class="dirty-dot" aria-hidden="true"></span>
+    <span class="note">Changes apply on confirm · <kbd>Up</kbd> <kbd>Down</kbd> navigate · <kbd>Left</kbd> <kbd>Right</kbd> adjust · <kbd>Esc</kbd> back</span>
+    <span class="spacer"></span>
+    <button class="btn" id="cancel">Cancel</button>
+    <button class="btn primary" id="apply" disabled>Apply</button>
+  </footer>
+
+  <div class="modal" id="revert" role="alertdialog" aria-modal="true" aria-labelledby="revert-title">
+    <div class="card">
+      <h3 id="revert-title">Keep these display settings?</h3>
+      <p>Your screen will change. If you cannot see this message, the previous
+        settings will be restored automatically in <span class="count" id="countdown">15</span>s.</p>
+      <div class="actions">
+        <button class="btn" id="revert-no">Revert</button>
+        <button class="btn primary" id="revert-yes">Keep</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ------------------------------------------------------------------ *
+ * Data model
+ * ------------------------------------------------------------------ */
+const DEFAULTS = {
+  windowMode: "borderless",
+  resolution: "2560x1440",
+  refresh: "144",
+  vsync: true,
+  fpsCap: "144",
+  brightness: 62,
+  resolutionScale: 100,
+  upscaling: "taau",
+  antiAliasing: "taa",
+  shadows: "high",
+  shadowCascades: 3,
+  ssao: true,
+  ssr: true,
+  volumetrics: 40,
+  bloom: 0.9,
+  motionBlur: 0.35,
+  fov: 78,
+  difficulty: "normal",
+  sensitivity: 2.8,
+  adsMult: 0.6,
+  invertY: false,
+  gamepadSensitivity: 3.2,
+  deadzone: 18,
+  vibration: true,
+  master: 80,
+  music: 65,
+  sfx: 85,
+  dialogue: 90,
+  dynamicRange: "cinema",
+  subtitles: true,
+  uiScale: 110,
+  colourBlind: "off",
+  reduceMotion: false,
+  hudScale: 100
+};
+
+const SCHEMA = [
+  {
+    id: "display",
+    label: "Display",
+    glyph: "▣",
+    title: "Display",
+    desc: "How the image reaches your screen. Display changes may blank the screen briefly.",
+    rows: [
+      { section: "Image" },
+      { id: "windowMode", label: "Window mode", kind: "segmented", restart: true,
+        options: [["Fullscreen", "fullscreen"], ["Borderless", "borderless"], ["Windowed", "windowed"]] },
+      { id: "resolution", label: "Resolution", kind: "select", restart: true,
+        hint: "Native is recommended. Lower it before lowering the render scale.",
+        options: [["1920 x 1080", "1920x1080"], ["2560 x 1440", "2560x1440"], ["3440 x 1440", "3440x1440"], ["3840 x 2160", "3840x2160"]] },
+      { id: "refresh", label: "Refresh rate", kind: "select", options: [["60 Hz", "60"], ["120 Hz", "120"], ["144 Hz", "144"], ["165 Hz", "165"]] },
+      { id: "vsync", label: "Vertical sync", kind: "toggle", hint: "Removes tearing at the cost of a little latency." },
+      { id: "fpsCap", label: "Frame rate cap", kind: "segmented", options: [["60", "60"], ["120", "120"], ["144", "144"], ["Unlimited", "0"]] },
+      { section: "Calibration" },
+      { id: "brightness", label: "Brightness", kind: "slider", min: 0, max: 100, step: 1, unit: "", hint: "Adjust until the left pattern is barely visible." }
+    ]
+  },
+  {
+    id: "graphics",
+    label: "Graphics",
+    glyph: "◈",
+    title: "Graphics",
+    desc: "Quality and performance. Higher settings cost frame time — the preset is the fastest way to move the whole set.",
+    rows: [
+      { section: "Image" },
+      { id: "resolutionScale", label: "Resolution scale", kind: "slider", min: 50, max: 100, step: 1, unit: "%", hint: "The single biggest lever on frame rate." },
+      { id: "upscaling", label: "Upscaling", kind: "segmented", options: [["Off", "off"], ["TAAU", "taau"], ["FSR", "fsr"]] },
+      { id: "antiAliasing", label: "Anti-aliasing", kind: "select", options: [["Off", "off"], ["FXAA", "fxaa"], ["SMAA", "smaa"], ["TAA", "taa"]] },
+      { id: "fov", label: "Field of view", kind: "slider", min: 60, max: 110, step: 1, unit: "°" },
+      { section: "Lighting" },
+      { id: "shadows", label: "Shadow quality", kind: "segmented", options: [["Low", "low"], ["Medium", "medium"], ["High", "high"], ["Ultra", "ultra"]] },
+      { id: "shadowCascades", label: "Shadow cascades", kind: "segmented", restart: true, options: [["1", "1"], ["2", "2"], ["3", "3"]] },
+      { id: "ssao", label: "Ambient occlusion", kind: "toggle", hint: "Contact shadows in corners and creases." },
+      { id: "ssr", label: "Screen-space reflections", kind: "toggle", hint: "Wet surfaces and glass. Expensive on integrated graphics." },
+      { id: "volumetrics", label: "Volumetric fog", kind: "slider", min: 0, max: 64, step: 8, unit: "steps" },
+      { section: "Effects" },
+      { id: "bloom", label: "Bloom", kind: "slider", min: 0, max: 2, step: 0.05, unit: "" },
+      { id: "motionBlur", label: "Motion blur", kind: "slider", min: 0, max: 1, step: 0.05, unit: "" },
+      { kind: "button", id: "benchmark", label: "Run benchmark", hint: "Samples the current scene for 10 seconds and suggests a preset." }
+    ]
+  },
+  {
+    id: "gameplay",
+    label: "Gameplay",
+    glyph: "◆",
+    title: "Gameplay",
+    desc: "Rules, HUD and camera comfort.",
+    rows: [
+      { section: "Rules" },
+      { id: "difficulty", label: "Difficulty", kind: "segmented", options: [["Story", "story"], ["Normal", "normal"], ["Hard", "hard"]] },
+      { section: "Camera" },
+      { id: "sensitivity", label: "Mouse sensitivity", kind: "slider", min: 0.5, max: 10, step: 0.1, unit: "cm/360" },
+      { id: "adsMult", label: "Aim sensitivity", kind: "slider", min: 0.2, max: 1, step: 0.05, unit: "×" },
+      { id: "invertY", label: "Invert vertical axis", kind: "toggle" },
+      { section: "Interface" },
+      { id: "hudScale", label: "HUD scale", kind: "slider", min: 70, max: 140, step: 5, unit: "%" },
+      { id: "subtitles", label: "Subtitles", kind: "toggle" }
+    ]
+  },
+  {
+    id: "controls",
+    label: "Controls",
+    glyph: "⌘",
+    title: "Controls",
+    desc: "Input devices and bindings. Changes are saved per profile.",
+    rows: [
+      { section: "Mouse" },
+      { id: "sensitivity", label: "Mouse sensitivity", kind: "slider", min: 0.5, max: 10, step: 0.1, unit: "cm/360" },
+      { id: "invertY", label: "Invert vertical axis", kind: "toggle" },
+      { section: "Gamepad" },
+      { id: "gamepadSensitivity", label: "Look sensitivity", kind: "slider", min: 0.5, max: 8, step: 0.1, unit: "×" },
+      { id: "deadzone", label: "Stick deadzone", kind: "slider", min: 0, max: 40, step: 1, unit: "%" },
+      { id: "vibration", label: "Vibration", kind: "toggle" },
+      { section: "Bindings" },
+      { kind: "button", id: "rebind", label: "Rebind keys", hint: "Open the full binding table with conflict detection." }
+    ]
+  },
+  {
+    id: "audio",
+    label: "Audio",
+    glyph: "♪",
+    title: "Audio",
+    desc: "Mix levels. Night mode compresses dynamic range for late play.",
+    rows: [
+      { section: "Levels" },
+      { id: "master", label: "Master", kind: "slider", min: 0, max: 100, step: 1, unit: "%" },
+      { id: "music", label: "Music", kind: "slider", min: 0, max: 100, step: 1, unit: "%" },
+      { id: "sfx", label: "Effects", kind: "slider", min: 0, max: 100, step: 1, unit: "%" },
+      { id: "dialogue", label: "Dialogue", kind: "slider", min: 0, max: 100, step: 1, unit: "%" },
+      { section: "Output" },
+      { id: "dynamicRange", label: "Dynamic range", kind: "segmented", options: [["Night", "night"], ["TV", "tv"], ["Cinema", "cinema"]] }
+    ]
+  },
+  {
+    id: "accessibility",
+    label: "Accessibility",
+    glyph: "◉",
+    title: "Accessibility",
+    desc: "Comfort and readability options. None of these reduce difficulty.",
+    rows: [
+      { section: "Readability" },
+      { id: "uiScale", label: "UI scale", kind: "slider", min: 80, max: 140, step: 5, unit: "%" },
+      { id: "colourBlind", label: "Colour-blind mode", kind: "select", options: [["Off", "off"], ["Deuteranopia", "deuter"], ["Protanopia", "protan"], ["Tritanopia", "tritan"]] },
+      { id: "subtitles", label: "Subtitles", kind: "toggle" },
+      { section: "Comfort" },
+      { id: "reduceMotion", label: "Reduce motion", kind: "toggle", hint: "Removes camera bob, shake and FOV kick." }
+    ]
+  }
+];
+
+const PRESETS = {
+  low:    { resolutionScale: 66,  shadows: "low",    shadowCascades: 1, ssao: false, ssr: false, volumetrics: 0,  bloom: 0.6, motionBlur: 0,   antiAliasing: "fxaa", upscaling: "off" },
+  medium: { resolutionScale: 80,  shadows: "medium", shadowCascades: 2, ssao: true,  ssr: false, volumetrics: 24, bloom: 0.8, motionBlur: 0.2, antiAliasing: "taa",  upscaling: "taau" },
+  high:   { resolutionScale: 100, shadows: "high",   shadowCascades: 3, ssao: true,  ssr: true,  volumetrics: 40, bloom: 0.9, motionBlur: 0.35, antiAliasing: "taa", upscaling: "taau" },
+  ultra:  { resolutionScale: 100, shadows: "ultra",  shadowCascades: 3, ssao: true,  ssr: true,  volumetrics: 56, bloom: 1.1, motionBlur: 0.5,  antiAliasing: "taa", upscaling: "taau" }
+};
+
+/* Settings whose change can leave the player with an unreadable screen. */
+const DANGEROUS = new Set(["windowMode", "resolution", "upscaling", "hdr"]);
+
+/* ------------------------------------------------------------------ *
+ * State
+ * ------------------------------------------------------------------ */
+const STORAGE_KEY = "game-builder.settings.v1";
+let committed = loadSettings();
+let draft = structuredClone(committed);
+let activeTab = 0;
+let focusIndex = -1;
+let revertTimer = null;
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(DEFAULTS);
+    return clampAll({ ...DEFAULTS, ...JSON.parse(raw) });
+  } catch { return structuredClone(DEFAULTS); }
+}
+function clampAll(s) {
+  for (const tab of SCHEMA) for (const row of tab.rows) {
+    if (row.kind === "slider") s[row.id] = Math.min(row.max, Math.max(row.min, Number(s[row.id]) || row.min));
+  }
+  if (![60, 120, 144, 165].includes(Number(s.refresh))) s.refresh = "144";
+  return s;
+}
+const isDirty = () => JSON.stringify(committed) !== JSON.stringify(draft);
+const presetFor = (s) => {
+  for (const [name, values] of Object.entries(PRESETS)) {
+    if (Object.entries(values).every(([k, v]) => s[k] === v)) return name;
+  }
+  return "custom";
+};
+
+/* ------------------------------------------------------------------ *
+ * Rendering
+ * ------------------------------------------------------------------ */
+const tabsEl = document.querySelector("#tabs");
+const rowsEl = document.querySelector("#rows");
+const titleEl = document.querySelector("#tab-title");
+const descEl = document.querySelector("#tab-desc");
+const presetEl = document.querySelector("#preset");
+const presetWrap = document.querySelector("#preset-wrap");
+const applyBtn = document.querySelector("#apply");
+const cancelBtn = document.querySelector("#cancel");
+const defaultsBtn = document.querySelector("#defaults");
+const detectedEl = document.querySelector("#detected");
+
+function renderTabs() {
+  tabsEl.innerHTML = "";
+  SCHEMA.forEach((tab, i) => {
+    const btn = document.createElement("button");
+    btn.className = "tab";
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", String(i === activeTab));
+    btn.innerHTML = `<span class="glyph">${tab.glyph}</span><span>${tab.label}</span>`;
+    btn.onclick = () => selectTab(i);
+    tabsEl.appendChild(btn);
+  });
+}
+
+function selectTab(i) {
+  activeTab = i;
+  focusIndex = -1;
+  renderTabs();
+  renderPanel();
+}
+
+function renderPanel() {
+  const tab = SCHEMA[activeTab];
+  titleEl.textContent = tab.title;
+  descEl.textContent = tab.desc;
+  presetWrap.style.display = tab.id === "graphics" ? "flex" : "none";
+  presetEl.value = presetFor(draft);
+  rowsEl.innerHTML = "";
+  let controlIndex = 0;
+
+  for (const row of tab.rows) {
+    if (row.section) {
+      const h = document.createElement("div");
+      h.className = "section";
+      h.textContent = row.section;
+      rowsEl.appendChild(h);
+      continue;
+    }
+    const el = document.createElement("div");
+    el.className = "row";
+    el.tabIndex = 0;
+    el.dataset.index = String(controlIndex);
+    if (controlIndex === 0 && focusIndex < 0) focusIndex = 0;
+    if (controlIndex === focusIndex) el.classList.add("focused");
+
+    const label = document.createElement("div");
+    label.className = "row-label";
+    label.innerHTML =
+      `<span class="name">${row.label}${row.restart ? ' <span class="restart">Restart</span>' : ""}</span>` +
+      (row.hint ? `<span class="hint">${row.hint}</span>` : "");
+
+    const control = document.createElement("div");
+    control.className = "row-control";
+    control.appendChild(buildControl(row));
+
+    el.append(label, control);
+    el.addEventListener("click", () => setFocus(controlIndex));
+    el.addEventListener("focus", () => setFocus(controlIndex));
+    rowsEl.appendChild(el);
+    controlIndex++;
+  }
+}
+
+function setFocus(index) {
+  focusIndex = index;
+  [...rowsEl.querySelectorAll(".row")].forEach((r) =>
+    r.classList.toggle("focused", Number(r.dataset.index) === index));
+}
+
+function buildControl(row) {
+  const value = draft[row.id];
+
+  if (row.kind === "segmented") {
+    const wrap = document.createElement("div");
+    wrap.className = "segmented";
+    row.options.forEach(([label, val]) => {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.setAttribute("aria-pressed", String(String(value) === String(val)));
+      b.onclick = (e) => { e.stopPropagation(); commitValue(row, val); };
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+
+  if (row.kind === "toggle") {
+    const b = document.createElement("button");
+    b.className = "toggle";
+    b.setAttribute("aria-pressed", String(Boolean(value)));
+    b.innerHTML = `<span class="track"><span class="knob"></span></span>
+                   <span class="state">${value ? "On" : "Off"}</span>`;
+    b.onclick = (e) => { e.stopPropagation(); commitValue(row, !value); };
+    return b;
+  }
+
+  if (row.kind === "slider") {
+    const wrap = document.createElement("div");
+    wrap.className = "slider-wrap";
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = row.min; input.max = row.max; input.step = row.step;
+    input.value = value;
+    input.setAttribute("aria-label", row.label);
+    const pct = ((value - row.min) / (row.max - row.min)) * 100;
+    input.style.setProperty("--p", pct + "%");
+    const out = document.createElement("span");
+    out.className = "value";
+    const show = (v) => {
+      out.innerHTML = `${formatValue(row, v)}<span class="unit">${row.unit || ""}</span>`;
+      input.style.setProperty("--p", ((v - row.min) / (row.max - row.min)) * 100 + "%");
+    };
+    show(value);
+    input.oninput = () => { draft[row.id] = Number(input.value); show(Number(input.value)); markDirty(); };
+    input.onchange = () => markDirty();
+    input.onclick = (e) => e.stopPropagation();
+    wrap.append(input, out);
+    return wrap;
+  }
+
+  if (row.kind === "select") {
+    const sel = document.createElement("select");
+    sel.setAttribute("aria-label", row.label);
+    row.options.forEach(([label, val]) => {
+      const o = document.createElement("option");
+      o.value = val; o.textContent = label;
+      if (String(val) === String(value)) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.onchange = () => commitValue(row, sel.value);
+    sel.onclick = (e) => e.stopPropagation();
+    return sel;
+  }
+
+  const b = document.createElement("button");
+  b.className = "textbtn";
+  b.textContent = row.label === "Run benchmark" ? "Run benchmark" : row.label === "Rebind keys" ? "Open bindings" : row.label;
+  b.onclick = (e) => { e.stopPropagation(); runAction(row.id); };
+  return b;
+}
+
+function formatValue(row, v) {
+  if (row.step < 1) return Number(v).toFixed(1);
+  return String(Math.round(Number(v)));
+}
+
+function commitValue(row, value) {
+  draft[row.id] = value;
+  markDirty();
+  renderPanel();
+  const sameIdElsewhere = SCHEMA.some((t) => t.id !== SCHEMA[activeTab].id && t.rows.some((r) => r.id === row.id));
+  if (sameIdElsewhere) renderTabsSilently();
+}
+
+function renderTabsSilently() { /* shared ids stay in sync on next tab switch */ }
+
+function markDirty() {
+  const dirty = isDirty();
+  document.body.classList.toggle("dirty", dirty);
+  applyBtn.disabled = !dirty;
+  presetEl.value = presetFor(draft);
+}
+
+function runAction(id) {
+  if (id === "benchmark") {
+    applyBtn.disabled = true;
+    applyBtn.textContent = "Benchmarking…";
+    setTimeout(() => {
+      detectedEl.innerHTML = "Detected <b>Medium</b>";
+      presetEl.value = "medium";
+      applyPreset("medium");
+      applyBtn.textContent = "Apply";
+      markDirty();
+    }, 1600);
+  }
+  if (id === "rebind") {
+    alert("Port the binding table here: one row per action, primary + secondary,\nconflict detection, Esc cancels, gamepad capture.");
+  }
+}
+
+function applyPreset(name) {
+  const values = PRESETS[name];
+  if (!values) return;
+  Object.assign(draft, values);
+  markDirty();
+  renderPanel();
+}
+
+/* ------------------------------------------------------------------ *
+ * Commit / revert
+ * ------------------------------------------------------------------ */
+function dangerousChanged() {
+  return Object.keys(DEFAULTS).some((k) => DANGEROUS.has(k) && committed[k] !== draft[k]);
+}
+
+function commitDraft(silent = false) {
+  committed = clampAll(structuredClone(draft));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(committed));
+  markDirty();
+  if (!silent) console.info("[settings] applied", committed);
+}
+
+applyBtn.onclick = () => {
+  if (dangerousChanged()) return openRevert();
+  commitDraft();
+};
+
+cancelBtn.onclick = () => {
+  draft = structuredClone(committed);
+  markDirty();
+  renderPanel();
+};
+
+defaultsBtn.onclick = () => {
+  draft = clampAll(structuredClone(DEFAULTS));
+  markDirty();
+  renderPanel();
+};
+
+presetEl.onchange = () => {
+  if (presetEl.value === "custom") return;
+  applyPreset(presetEl.value);
+};
+
+function openRevert() {
+  const modal = document.querySelector("#revert");
+  const countEl = document.querySelector("#countdown");
+  let seconds = 15;
+  countEl.textContent = String(seconds);
+  modal.classList.add("open");
+  document.querySelector("#revert-yes").focus();
+  clearInterval(revertTimer);
+  revertTimer = setInterval(() => {
+    seconds -= 1;
+    countEl.textContent = String(Math.max(0, seconds));
+    if (seconds <= 0) closeRevert(false);
+  }, 1000);
+}
+
+function closeRevert(keep) {
+  clearInterval(revertTimer);
+  revertTimer = null;
+  document.querySelector("#revert").classList.remove("open");
+  if (keep) commitDraft();
+  else { draft = structuredClone(committed); markDirty(); renderPanel(); }
+}
+
+document.querySelector("#revert-yes").onclick = () => closeRevert(true);
+document.querySelector("#revert-no").onclick = () => closeRevert(false);
+
+/* ------------------------------------------------------------------ *
+ * Navigation (keyboard + gamepad)
+ * ------------------------------------------------------------------ */
+function controlRows() { return [...rowsEl.querySelectorAll(".row")]; }
+
+function adjust(row, direction) {
+  const value = draft[row.id];
+  if (row.kind === "segmented") {
+    const i = row.options.findIndex(([, v]) => String(v) === String(value));
+    const next = row.options[Math.min(row.options.length - 1, Math.max(0, i + direction))];
+    if (next) commitValue(row, next[1]);
+  } else if (row.kind === "slider") {
+    const step = row.step * (direction > 0 ? 1 : -1);
+    const next = Math.min(row.max, Math.max(row.min, Number(value) + step));
+    commitValue(row, Number(next.toFixed(2)));
+    const rowEl = controlRows()[focusIndex];
+    const input = rowEl?.querySelector('input[type="range"]');
+    if (input) input.value = next;
+    const out = rowEl?.querySelector(".value");
+    if (out) out.innerHTML = `${formatValue(row, next)}<span class="unit">${row.unit || ""}</span>`;
+  } else if (row.kind === "toggle") {
+    commitValue(row, !value);
+  } else if (row.kind === "select") {
+    const i = row.options.findIndex(([, v]) => String(v) === String(value));
+    const next = row.options[Math.min(row.options.length - 1, Math.max(0, i + direction))];
+    if (next) commitValue(row, next[1]);
+  }
+}
+
+function currentRowDef() {
+  const controls = SCHEMA[activeTab].rows.filter((r) => !r.section);
+  return controls[focusIndex];
+}
+
+document.addEventListener("keydown", (e) => {
+  if (document.querySelector("#revert").classList.contains("open")) {
+    if (e.key === "Enter") closeRevert(true);
+    if (e.key === "Escape") closeRevert(false);
+    return;
+  }
+  const rows = controlRows();
+  if (!rows.length) return;
+
+  // Inside a native select or slider the browser owns the arrow keys; our
+  // handler would otherwise move two steps per press (native + adjust).
+  const tag = e.target?.tagName;
+  if (tag === "SELECT" || tag === "INPUT" || tag === "TEXTAREA") {
+    if (e.key === "Escape") cancelBtn.click();
+    return;
+  }
+
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    const delta = e.key === "ArrowDown" ? 1 : -1;
+    focusIndex = Math.min(rows.length - 1, Math.max(0, focusIndex + delta));
+    setFocus(focusIndex);
+    rows[focusIndex].scrollIntoView({ block: "nearest" });
+  } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    e.preventDefault();
+    const row = currentRowDef();
+    if (row) adjust(row, e.key === "ArrowRight" ? 1 : -1);
+  } else if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    const row = currentRowDef();
+    if (!row) return;
+    if (row.kind === "toggle") adjust(row, 1);
+    else if (row.kind === "segmented" || row.kind === "select") adjust(row, 1);
+    else if (row.kind === "button") runAction(row.id);
+  } else if (e.key === "Escape") {
+    cancelBtn.click();
+  }
+});
+
+/* Gamepad: d-pad/stick navigate, A confirm, B cancel, shoulders switch tabs. */
+let padRepeat = 0, padLast = { x: 0, y: 0 };
+function pollGamepad(t) {
+  const pad = navigator.getGamepads?.()[0];
+  if (pad && t > padRepeat) {
+    const ax = pad.axes[0] ?? 0, ay = pad.axes[1] ?? 0;
+    const press = (cond, fn) => { if (cond) { fn(); padRepeat = t + 180; } };
+    press(ay > 0.6 || pad.buttons[13]?.pressed, () => {
+      focusIndex = Math.min(controlRows().length - 1, focusIndex + 1); setFocus(focusIndex);
+    });
+    press(ay < -0.6 || pad.buttons[12]?.pressed, () => {
+      focusIndex = Math.max(0, focusIndex - 1); setFocus(focusIndex);
+    });
+    press(ax > 0.6 || pad.buttons[15]?.pressed, () => { const r = currentRowDef(); r && adjust(r, 1); });
+    press(ax < -0.6 || pad.buttons[14]?.pressed, () => { const r = currentRowDef(); r && adjust(r, -1); });
+    press(pad.buttons[5]?.pressed, () => selectTab((activeTab + 1) % SCHEMA.length));
+    press(pad.buttons[4]?.pressed, () => selectTab((activeTab - 1 + SCHEMA.length) % SCHEMA.length));
+    press(pad.buttons[0]?.pressed, () => {
+      const r = currentRowDef();
+      if (r?.kind === "toggle") adjust(r, 1); else if (r?.kind === "button") runAction(r.id); else applyBtn.click();
+    });
+    press(pad.buttons[1]?.pressed, () => cancelBtn.click());
+  }
+  requestAnimationFrame(pollGamepad);
+}
+
+/* Boot */
+renderTabs();
+renderPanel();
+markDirty();
+requestAnimationFrame(pollGamepad);
+document.addEventListener("pointerdown", () => document.body.classList.add("menu-open"), { once: true });
+</script>
+</body>
+</html>

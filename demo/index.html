@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Harbour — game-builder demo</title>
+<link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <canvas id="view"></canvas>
+
+  <div id="loading">
+    <div class="load-inner">
+      <span class="eyebrow">Loading</span>
+      <h1>Harbour</h1>
+      <div class="bar"><i id="load-bar"></i></div>
+      <p id="load-status">Initialising renderer…</p>
+    </div>
+  </div>
+
+  <div id="lock-hint">Click to look · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Shift</kbd> run · <kbd>Esc</kbd> settings</div>
+
+  <div id="hud">
+    <div class="stat"><span id="stat-fps">--</span> fps</div>
+    <div class="stat"><span id="stat-tris">--</span> tris</div>
+    <div class="stat"><span id="stat-calls">--</span> calls</div>
+    <button id="open-settings">Settings</button>
+  </div>
+
+  <div id="settings-root" class="settings" hidden></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
